@@ -625,16 +625,23 @@ public class Auth {
 	 *
 	 * @param requestId
 	 *				The ID of the AuthNRequest sent by this SP to the IdP
+	 * @param currentUrl
+	 *				The URL of the current request (defaults to the HttpRequest getCurrentUrl())
 	 *
 	 * @throws Exception 
 	 */
-	public void processResponse(String requestId) throws Exception {
+	public void processResponse(String requestId, String currentUrl) throws Exception {
 		authenticated = false;
 		final HttpRequest httpRequest = ServletUtils.makeHttpRequest(this.request);
 		final String samlResponseParameter = httpRequest.getParameter("SAMLResponse");
 
 		if (samlResponseParameter != null) {
 			SamlResponse samlResponse = new SamlResponse(settings, httpRequest);
+
+			if( currentUrl != null ){
+				samlResponse.setDestinationUrl(currentUrl);
+			}
+
 			lastResponse = samlResponse.getSAMLResponseXml();
 
 			if (samlResponse.isValid(requestId)) {
@@ -667,10 +674,22 @@ public class Auth {
 	/**
 	 * Process the SAML Response sent by the IdP.
 	 *
-	 * @throws Exception 
+	 * @param requestId
+	 *				The ID of the AuthNRequest sent by this SP to the IdP
+	 *
+	 * @throws Exception
+	 */
+	public void processResponse(String requestId) throws Exception {
+		processResponse(requestId, null);
+	}
+
+	/**
+	 * Process the SAML Response sent by the IdP.
+	 *
+	 * @throws Exception
 	 */
 	public void processResponse() throws Exception {
-		processResponse(null);
+		processResponse(null, null);
 	}
 
 	/**
